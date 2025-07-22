@@ -3,8 +3,13 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <random>
+#include <chrono>
+
 
 #define RADIUS 5
+int gen_range(int, int);
+
 
 class Qnode
 {
@@ -15,10 +20,10 @@ class Qnode
     int capacity = 4;
 
 public:
-    Qnode(Rectangle boundary)
+    Qnode(const Rectangle &boundary)
         : boundary(boundary) {}
 
-    bool insert(Point pt)
+    bool insert(const Point &pt)
     {
         if (!boundary.contains(pt))
         {
@@ -90,14 +95,14 @@ public:
         }
     }
 
-    std::vector<Point> query(Rectangle &range)
+    std::vector<Point> query(const Rectangle &range)
     {
         std::vector<Point> found;
         queryHelper(range, found);
         return found;
     }
 
-    bool remove(Point &pt)
+    bool remove(const Point &pt)
     {
         if (!boundary.contains(pt))
         {
@@ -142,6 +147,12 @@ public:
             divided = false;
         }
     }
+
+    void update(const Point &pt)
+    {
+        remove(pt);
+        insert(pt);
+    }
 };
 
 int main(void)
@@ -151,17 +162,44 @@ int main(void)
 
     const Rectangle qtree_rect{0, 0, screen_width, screen_height};
     Qnode qtree{qtree_rect};
-    qtree.insert(Point{20, 20, RADIUS});
-    qtree.insert(Point{100, 100, RADIUS});
-    qtree.insert(Point{150, 150, RADIUS});
-    qtree.insert(Point{300, 300, RADIUS});
-    qtree.insert(Point{400, 500, RADIUS});
 
-    Rectangle viewport{0, 0, 200, 200};
+    
+    auto insert_start = std::chrono::high_resolution_clock::now();
+    
+    int num_of_points = 1000;
+
+    for (size_t i = 0; i < num_of_points; i++)
+    {
+        qtree.insert(Point(gen_range(0, screen_width), gen_range(0, screen_height), RADIUS));
+    }
+
+    auto insert_end = std::chrono::high_resolution_clock::now();
+    auto insert_duration = std::chrono::duration_cast<std::chrono::microseconds>(insert_end - insert_start);
+    std::cout << "Insertion of " << num_of_points << " took " << insert_duration.count() << " microseconds.\n";
+
+    
+
+    Rectangle viewport{0, 0, 400, 400};
+    auto query_start = std::chrono::high_resolution_clock::now();
     std::vector<Point> hits = qtree.query(viewport);
+
+    auto query_end = std::chrono::high_resolution_clock::now();
+    auto query_duration = std::chrono::duration_cast<std::chrono::microseconds>(query_end - query_start);
+    std::cout << "Queried " << hits.size() << " items, took " << query_duration.count() << " microseconds.\n";
+
+
+    std::cout << "range is x, y is : {" << viewport.get_x() << ", " << viewport.get_y() << "} and w, h: {" << viewport.get_width() << ", " << viewport.get_height() << "}\n"; 
     for (const auto p : hits)
     {
         std::cout << "point x, y: " << "{" << p.x << ", " << p.y << "}" << std::endl;
     }
     return 0;
 };
+
+int gen_range(int a, int b)
+{
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distr(a, b);
+    return distr(gen);
+}
