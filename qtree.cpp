@@ -188,9 +188,12 @@ int main(void)
     std::cout << "Queried " << hits.size() << " items, took " << query_duration.count() << " microseconds.\n";
 
 
-    std::cout << "range is x, y is : {" << viewport.get_x() << ", " << viewport.get_y() << "} and w, h: {" << viewport.get_width() << ", " << viewport.get_height() << "}\n"; 
-    for (const auto p : hits)
+    std::cout << "range's x, y is : {" << viewport.get_x() << ", " << viewport.get_y() << "} and w, h: {" << viewport.get_width() << ", " << viewport.get_height() << "}\n"; 
+    // for (const auto p : hits)
+    int printamount = hits.size() < 10 ? hits.size() : 10; 
+    for (int i = 0; i < printamount; i++)
     {
+        Point p = hits[i];
         std::cout << "point x, y: " << "{" << p.x << ", " << p.y << "}" << std::endl;
     }
     return 0;
